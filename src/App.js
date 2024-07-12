@@ -1,25 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.js
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import ProtectedLayout from './components/layouts/ProtectedLayout';
+import CrudComponent from './components/pages/CrudComponent';
+import Reportes from './components/pages/Reportes';
+import Login from './components/auth/Login';
 
-function App() {
+const PrivateRoute = ({ children }) => {
+  return localStorage.getItem('auth') ? children : <Navigate to="/login" />;
+};
+
+const App = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <ProtectedLayout toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/usuarios" element={<CrudComponent />} />
+            <Route path="/reportes" element={<Reportes />} />
+            <Route path="/" element={<Navigate to="/usuarios" />} />
+          </Route>
+        </Routes>
+      </Router>
     </div>
   );
-}
+};
 
 export default App;
