@@ -10,20 +10,20 @@ const TopBar = ({ toggleDarkMode, darkMode }) => {
     };
 
     return (
-        <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-gray-800 shadow-md">
+        <div className="flex justify-between items-center p-4 bg-gray-100 dark:bg-darkCard shadow-md text-gray-900 dark:text-white">
             <input
                 type="text"
                 placeholder="Type here..."
-                className="px-4 py-2 rounded-full border focus:outline-none"
+                className="px-4 py-2 rounded-full border focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
             <div className="flex items-center space-x-4">
                 <button onClick={toggleDarkMode} className="focus:outline-none">
                     {darkMode ? <FaSun className="text-yellow-500" /> : <FaMoon className="text-gray-700" />}
                 </button>
                 <button onClick={toggleNotifications} className="relative focus:outline-none">
-                    <FaBell className="text-gray-700" />
+                    <FaBell className="text-gray-700 dark:text-white" />
                     {showNotifications && (
-                        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 shadow-lg rounded-lg">
+                        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-darkCard shadow-lg rounded-lg">
                             <div className="p-4 border-b dark:border-gray-700">
                                 <span className="font-semibold text-gray-800 dark:text-gray-300">Notifications</span>
                             </div>

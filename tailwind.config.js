@@ -4,7 +4,12 @@ module.exports = {
     './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        darkBg: '#1a202c', // Fondo oscuro personalizado
+        darkCard: '#2d3748', // Card oscura personalizada
+      },
+    },
   },
   plugins: [],
 };

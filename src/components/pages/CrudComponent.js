@@ -1,24 +1,27 @@
-// src/components/pages/CrudComponent.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus, FaUserPlus } from 'react-icons/fa';
-// import './CrudComponent.css'; // Importar Tailwind CSS
 
 const CrudComponent = () => {
-  const initialItems = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', phone: '123-456-7890' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '987-654-3210' },
-    { id: 3, name: 'Michael Johnson', email: 'michael@example.com', phone: '555-123-4567' },
-  ];
-
-  const [items, setItems] = useState(initialItems);
+  const [users, setUsers] = useState([]);
   const [addValues, setAddValues] = useState({ name: '', email: '', phone: '' });
-  const [editableItemId, setEditableItemId] = useState(null);
+  const [editableUserId, setEditableUserId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [addErrors, setAddErrors] = useState({});
   const [editErrors, setEditErrors] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddForm, setShowAddForm] = useState(false);
   const itemsPerPage = 3;
+
+  useEffect(() => {
+    axios.get('http://localhost:5000/api/users')
+      .then(response => {
+        setUsers(response.data);
+      })
+      .catch(error => {
+        console.error('There was an error fetching the users!', error);
+      });
+  }, []);
 
   const validateFields = (fields) => {
     const newErrors = {};
@@ -35,43 +38,68 @@ const CrudComponent = () => {
       return;
     }
 
-    setItems([...items, { ...addValues, id: Date.now() }]);
-    setAddValues({ name: '', email: '', phone: '' });
-    setAddErrors({});
-    setShowAddForm(false);
+    console.log(addValues); // Verifica los datos que se envían
+
+    axios.post('http://localhost:5000/api/users', addValues)
+      .then(response => {
+        console.log(response.data); // Verifica la respuesta del backend
+
+        setUsers([...users, response.data]);
+        setAddValues({ name: '', email: '', phone: '' });
+        setAddErrors({});
+        setShowAddForm(false);
+      })
+      .catch(error => {
+        console.error('There was an error creating the user!', error);
+      });
   };
 
-  const handleEditSave = (item) => {
-    const updatedItem = { ...item, ...editValues };
-    const validationErrors = validateFields(updatedItem);
+
+
+  const handleEditSave = (user) => {
+    const updatedUser = { ...user, ...editValues };
+    const validationErrors = validateFields(updatedUser);
     if (Object.keys(validationErrors).length > 0) {
       setEditErrors(validationErrors);
       return;
     }
-    setItems(items.map((i) => (i.id === item.id ? updatedItem : i)));
-    setEditableItemId(null);
-    setEditValues({});
-    setEditErrors({});
+
+    axios.put(`http://localhost:5000/api/users/${user.id}`, updatedUser)
+      .then(response => {
+        setUsers(users.map(u => (u.id === user.id ? response.data : u)));
+        setEditableUserId(null);
+        setEditValues({});
+        setEditErrors({});
+      })
+      .catch(error => {
+        console.error('There was an error updating the user!', error);
+      });
   };
 
   const handleEditChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
   };
 
-  const handleEdit = (item) => {
-    setEditableItemId(item.id);
-    setEditValues(item);
+  const handleEdit = (user) => {
+    setEditableUserId(user.id);
+    setEditValues(user);
     setEditErrors({});
   };
 
   const handleCancelEdit = () => {
-    setEditableItemId(null);
+    setEditableUserId(null);
     setEditValues({});
     setEditErrors({});
   };
 
   const handleDelete = (id) => {
-    setItems(items.filter((item) => item.id !== id));
+    axios.delete(`http://localhost:5000/api/users/${id}`)
+      .then(() => {
+        setUsers(users.filter(user => user.id !== id));
+      })
+      .catch(error => {
+        console.error('There was an error deleting the user!', error);
+      });
   };
 
   const handleAddChange = (e, field) => {
@@ -85,21 +113,21 @@ const CrudComponent = () => {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = items.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = users.slice(indexOfFirstItem, indexOfLastItem);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Customer Management</h1>
+      <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">User Management</h1>
       <button
         onClick={() => setShowAddForm(!showAddForm)}
         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition flex items-center mb-4"
       >
-        <FaUserPlus className="mr-2" /> {showAddForm ? 'Hide Form' : 'Add New Customer'}
+        <FaUserPlus className="mr-2" /> {showAddForm ? 'Hide Form' : 'Add New User'}
       </button>
       {showAddForm && (
-        <form onSubmit={handleAddSubmit} className="space-y-4 p-4 bg-white shadow-md rounded-lg">
+        <form onSubmit={handleAddSubmit} className="space-y-4 p-4 bg-white dark:bg-darkCard shadow-md rounded-lg">
           <div>
             <input
               type="text"
@@ -135,21 +163,21 @@ const CrudComponent = () => {
           </button>
         </form>
       )}
-      <div className="mt-6 bg-white shadow-md rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="mt-6 bg-white dark:bg-darkCard shadow-md rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Phone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {currentItems.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+          <tbody className="bg-white dark:bg-darkCard divide-y divide-gray-200 dark:divide-gray-700">
+            {currentItems.map((user) => (
+              <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {editableItemId === item.id ? (
+                  {editableUserId === user.id ? (
                     <div>
                       <input
                         type="text"
@@ -160,11 +188,11 @@ const CrudComponent = () => {
                       {editErrors.name && <span className="text-red-500">{editErrors.name}</span>}
                     </div>
                   ) : (
-                    item.name
+                    <span className="text-gray-900 dark:text-white">{user.name}</span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {editableItemId === item.id ? (
+                  {editableUserId === user.id ? (
                     <div>
                       <input
                         type="email"
@@ -175,11 +203,11 @@ const CrudComponent = () => {
                       {editErrors.email && <span className="text-red-500">{editErrors.email}</span>}
                     </div>
                   ) : (
-                    item.email
+                    <span className="text-gray-900 dark:text-white">{user.email}</span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {editableItemId === item.id ? (
+                  {editableUserId === user.id ? (
                     <div>
                       <input
                         type="text"
@@ -190,14 +218,14 @@ const CrudComponent = () => {
                       {editErrors.phone && <span className="text-red-500">{editErrors.phone}</span>}
                     </div>
                   ) : (
-                    item.phone
+                    <span className="text-gray-900 dark:text-white">{user.phone}</span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                  {editableItemId === item.id ? (
+                  {editableUserId === user.id ? (
                     <>
                       <button
-                        onClick={() => handleEditSave(item)}
+                        onClick={() => handleEditSave(user)}
                         className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition flex items-center"
                       >
                         <FaSave className="mr-2" /> Save
@@ -212,13 +240,13 @@ const CrudComponent = () => {
                   ) : (
                     <>
                       <button
-                        onClick={() => handleEdit(item)}
+                        onClick={() => handleEdit(user)}
                         className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition flex items-center"
                       >
                         <FaEdit className="mr-2" /> Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleDelete(user.id)}
                         className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition flex items-center"
                       >
                         <FaTrash className="mr-2" /> Delete
@@ -238,10 +266,10 @@ const CrudComponent = () => {
           >
             Previous
           </button>
-          <span>Page {currentPage}</span>
+          <span className="text-gray-900 dark:text-white">Page {currentPage}</span>
           <button
             onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === Math.ceil(items.length / itemsPerPage)}
+            disabled={currentPage === Math.ceil(users.length / itemsPerPage)}
             className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
           >
             Next

@@ -4,7 +4,11 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import ProtectedLayout from './components/layouts/ProtectedLayout';
 import CrudComponent from './components/pages/CrudComponent';
 import Reportes from './components/pages/Reportes';
-import Login from './components/auth/Login';
+import Login from './components/auth/Login';/* 
+import UserProfile from './components/pages/UserProfile';
+import Roles from './components/pages/Roles';
+import NotificationHistory from './components/pages/NotificationHistory';
+ */import Teams from './components/pages/Teams';
 
 const PrivateRoute = ({ children }) => {
   return localStorage.getItem('auth') ? children : <Navigate to="/login" />;
@@ -40,6 +44,7 @@ const App = () => {
           >
             <Route path="/usuarios" element={<CrudComponent />} />
             <Route path="/reportes" element={<Reportes />} />
+            <Route path="/teams" element={<Teams />} />
             <Route path="/" element={<Navigate to="/usuarios" />} />
           </Route>
         </Routes>
